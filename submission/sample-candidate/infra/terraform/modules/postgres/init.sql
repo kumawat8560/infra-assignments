@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS configs (
+    id VARCHAR(255) PRIMARY KEY,
+    host VARCHAR(255) NOT NULL,
+    port INTEGER NOT NULL,
+    app_name VARCHAR(255) NOT NULL,
+    log_level VARCHAR(255) NOT NULL
+);
