@@ -1,0 +1,11 @@
+namespace           = "config-service"
+postgres_image      = "postgres:16"
+postgres_db         = "configdb"
+app_label            ="postgres"
+postgres_user       = "postgres"
+postgres_password   = "change-me"
+storage_size        = "5Gi"
+service_name        = "postgres"
+secret_name         = "config-service-db"
+replicas            = 1
+storage_class_name  = "standard"

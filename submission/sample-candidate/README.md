@@ -1,105 +1,246 @@
 # Config Service — Sample Candidate Submission
 
-A minimal Kubernetes config management service written in Go.
+A lightweight configuration management service written in Go and deployed locally on Kubernetes (Kind). Infrastructure is provisioned using Terraform, and configuration data is persisted in PostgreSQL.
 
-## Architecture
+---
+
+# Architecture
 
 ```
-cmd/main.go                 — entrypoint, wires dependencies
-internal/handler/           — HTTP layer (thin, delegates to service)
-internal/service/           — business logic
-internal/repository/        — storage interface + in-memory implementation
-internal/domain/            — shared data types
-infra/terraform/            — IaC (namespace / cluster bootstrap)
-k8s/                        — Kubernetes manifests
+.
+├── cmd/
+│   └── main.go                  # Application entrypoint
+├── internal/
+│   ├── domain/                  # Shared domain models
+│   ├── handler/                 # HTTP handlers
+│   ├── repository/              # PostgreSQL repository implementation
+│   └── service/                 # Business logic
+├── infra/
+│   └── terraform/
+│       ├── bootstrap/           # Kind cluster provisioning
+│       └── platform/            # Namespace and PostgreSQL provisioning
+├── k8s/         # Kubernetes Deployment and Service manifests
+├── Dockerfile
+├── Makefile
+└── README.md
 ```
 
-## API
+---
 
-| Method | Path           | Description                  |
-|--------|----------------|------------------------------|
-| GET    | /ping          | Liveness check, returns pong |
-| GET    | /configs/:id   | Retrieve config by ID        |
-| POST   | /configs       | Create or update a config    |
+# API
 
-### POST /configs — example body
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/ping` | Health check |
+| POST | `/configs` | Create or update a configuration |
+| GET | `/configs/{id}` | Retrieve a configuration |
 
-```json
-{
-  "id": "cfg_1",
-  "host": "localhost",
-  "port": 8080,
-  "app_name": "config-service",
-  "log_level": "INFO"
-}
+---
+
+## POST /configs
+
+Example request:
+curl -X POST http://localhost:8080/configs \
+-H "Content-Type: application/json" \
+-d '{
+  "id":"cfg_1",
+  "host":"localhost",
+  "port":8080,
+  "app_name":"config-service",
+  "log_level":"INFO"
+}'
+
+
+---
+
+## GET /configs/{id}
+
+Example:
+
+```bash
+curl http://localhost:8080/configs/cfg_1
 ```
 
-## Local setup
+---
 
-### Prerequisites
+# Prerequisites
 
-- Go 1.22+
+Install the following:
+
+- Go 1.25+
 - Docker
-- kind or minikube
+- Kind
 - kubectl
 - Terraform >= 1.8
+- GNU Make
 
-### Run tests
+---
+
+# Terraform Configuration
+
+Create the Terraform variable files from the provided examples.
 
 ```bash
-go test ./... -race
+cp infra/terraform/bootstrap/terraform.tfvars.example \
+   infra/terraform/bootstrap/terraform.tfvars
+
+cp infra/terraform/platform/terraform.tfvars.example \
+   infra/terraform/platform/terraform.tfvars
 ```
 
-### Build image
+Update the values if required before deployment. 
+
+---
+
+# Deployment
+
+Provision the infrastructure using terraform and deploy the application.
 
 ```bash
-docker build -t config-service:latest .
+make up
 ```
 
-### Deploy to kind
+This performs the following:
+
+- Creates the Kind cluster.
+- Provisions the Kubernetes namespace.
+- Deploys PostgreSQL using statefulset
+- Builds the application Docker image.
+- Loads the image into the Kind cluster.
+- Deploys the Config Service.
+
+---
+
+# Validate Deployment
+
+Run deployment smoke checks.
 
 ```bash
-# 1. Create cluster
-kind create cluster --name config-service
+make smoke
+```
 
-# 2. Load image
-kind load docker-image config-service:latest --name config-service
+This verifies:
 
-# 3. Apply manifests
-kubectl apply -f k8s/
+- Config Service deployment rollout
+- Config Service pod readiness
+- PostgreSQL pod readiness
+- Kubernetes services
 
-# 4. Verify
-kubectl -n config-service rollout status deploy/config-service
-kubectl -n config-service port-forward svc/config-service 8080:8080 &
+---
+
+# Run Unit Tests
+
+Execute the provided Go unit tests.
+
+```bash
+make test
+```
+
+or
+
+```bash
+go test ./... -v
+```
+
+---
+
+# Access the Application
+
+Forward the service locally.
+
+```bash
+kubectl port-forward \
+-n config-service \
+svc/config-service \
+8080:8080
+```
+
+Health endpoint:
+
+```bash
 curl http://localhost:8080/ping
 ```
 
-### Terraform
+---
 
-Terraform manages namespace/bootstrap metadata. To run:
+# API Examples
+
+## Create Configuration
 
 ```bash
-cd infra/terraform
-terraform init
-terraform apply
+curl -X POST http://localhost:8080/configs \
+-H "Content-Type: application/json" \
+-d '{
+  "id":"cfg_1",
+  "host":"localhost",
+  "port":8080,
+  "app_name":"config-service",
+  "log_level":"INFO"
+}'
 ```
 
-## Configuration
+---
 
-| Variable     | Source    | Description                 |
-|--------------|-----------|-----------------------------|
-| APP_PORT     | ConfigMap | HTTP listen port (default 8080) |
-| LOG_LEVEL    | ConfigMap | Application log level       |
-| DATABASE_URL | Secret    | PostgreSQL connection string |
+## Retrieve Configuration
 
-`DATABASE_URL` is optional (`optional: true`). When absent the service uses the
-in-memory repository.
+```bash
+curl http://localhost:8080/configs/cfg_1
+```
 
-## Known limitations
+---
 
-- In-memory storage is not persistent; a full submission would wire in a
-  postgres repository behind the same `Repository` interface.
-- Terraform manages only bootstrap metadata; a full submission would provision
-  the PostgreSQL StatefulSet or RDS-equivalent via Helm/TF.
-- No migrations automation — a full submission would run `golang-migrate` or
-  equivalent as an init container.
+# Verify Database
+
+Connect to PostgreSQL.
+
+```bash
+kubectl exec -it \
+-n config-service \
+postgres-0 \
+-- psql -U postgres -d configdb
+```
+
+Verify persisted data.
+
+```sql
+SELECT * FROM configs;
+```
+
+---
+
+# Validation Performed
+
+The following validation steps were completed:
+
+- Successfully provisioned the Kind cluster using Terraform.
+- Successfully provisioned the Kubernetes namespace and PostgreSQL using Terraform.
+- Successfully deployed the Config Service.
+- Verified PostgreSQL connectivity.
+- Verified application startup.
+- Successfully created configuration records through the REST API.
+- Successfully retrieved configuration records through the REST API.
+- Verified persisted data directly in PostgreSQL.
+- Executed the provided Go handler unit tests.
+- Verified deployment health using Kubernetes smoke checks.
+
+---
+
+# Cleanup
+
+Destroy all provisioned infrastructure.
+
+```bash
+make down
+```
+
+---
+
+# Future Improvements
+
+Given additional time, the following enhancements would be implemented:
+- CI/CD pipeline for automated build, validation, testing, and deployment.
+- Production-grade secret management (e.g., Vault or cloud secret managers).
+- Structured logging and application metrics.
+- Helm configuration for the application deployment
+- End-to-end integration tests.
+- Database migration automation.

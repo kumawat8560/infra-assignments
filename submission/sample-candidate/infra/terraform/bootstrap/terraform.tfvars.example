@@ -1,0 +1,6 @@
+app_name            = "config-service"
+namespace           = "config-service"
+cluster_name        = "config-service"
+node_image          = "kindest/node:v1.34.0"
+control_plane_count = 1
+worker_count        = 1
