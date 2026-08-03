@@ -9,17 +9,19 @@ A lightweight configuration management service written in Go and deployed locall
 ```
 .
 ├── cmd/
-│   └── main.go                  # Application entrypoint
 ├── internal/
-│   ├── domain/                  # Shared domain models
-│   ├── handler/                 # HTTP handlers
-│   ├── repository/              # PostgreSQL repository implementation
-│   └── service/                 # Business logic
+│   ├── domain/
+│   ├── handler/
+│   ├── repository/
+│   └── service/
 ├── infra/
 │   └── terraform/
-│       ├── bootstrap/           # Kind cluster provisioning
-│       └── platform/            # Namespace and PostgreSQL provisioning
-├── k8s/         # Kubernetes Deployment and Service manifests
+│       ├── bootstrap/
+│       ├── modules/
+│       │   ├── namespace/
+│       │   └── postgres/
+│       └── platform/
+├── k8s/
 ├── Dockerfile
 ├── Makefile
 └── README.md
