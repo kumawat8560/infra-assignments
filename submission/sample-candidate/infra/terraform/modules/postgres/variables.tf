@@ -3,11 +3,6 @@ variable "namespace" {
   type        = string
 }
 
-variable "labels" {
-  description = "Common labels"
-  type        = map(string)
-}
-
 variable "postgres_image" {
   description = "PostgreSQL Docker image"
   type        = string

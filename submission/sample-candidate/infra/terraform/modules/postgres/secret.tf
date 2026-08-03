@@ -3,7 +3,6 @@ resource "kubernetes_secret_v1" "postgres" {
   metadata {
     name      = var.secret_name
     namespace = var.namespace
-    labels    = var.labels
   }
 
   type = "Opaque"

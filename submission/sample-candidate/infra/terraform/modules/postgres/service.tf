@@ -4,12 +4,7 @@ resource "kubernetes_service_v1" "postgres" {
     name      = var.service_name
     namespace = var.namespace
 
-    labels = merge(
-      var.labels,
-      {
-        app = var.app_label
-      }
-    )
+    labels =local.common_labels
   }
 
   spec {

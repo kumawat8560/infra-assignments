@@ -4,10 +4,7 @@ resource "kubernetes_stateful_set_v1" "postgres" {
     name      = var.service_name
     namespace = var.namespace
 
-    labels = {
-      app        = var.app_label
-      managed-by = "terraform"
-    }
+    labels =  local.common_labels
   }
 
   spec {
@@ -24,10 +21,7 @@ resource "kubernetes_stateful_set_v1" "postgres" {
     template {
 
       metadata {
-        labels = {
-          app        = var.app_label
-          managed-by = "terraform"
-        }
+          labels = local.common_labels
       }
 
       spec {

@@ -1,50 +1,59 @@
-variable "app_name" {
-  description = "Application name"
-  type        = string
-  default     = "config-service"
-}
-
 variable "namespace" {
   description = "Kubernetes namespace"
   type        = string
-  default     = "config-service"
 }
 
 variable "postgres_image" {
-  type = string
+  description = "PostgreSQL Docker image"
+  type        = string
+  default     = "postgres:16"
 }
 
 variable "postgres_db" {
-  type = string
+  description = "Database name"
+  type        = string
 }
 
 variable "postgres_user" {
-  type = string
+  description = "Database username"
+  type        = string
 }
 
 variable "postgres_password" {
-  type      = string
-  sensitive = true
+  description = "Database password"
+  type        = string
+  sensitive   = true
 }
 
 variable "storage_size" {
-  type = string
+  description = "Persistent volume size"
+  type        = string
+  default     = "5Gi"
 }
 
 variable "service_name" {
-  type = string
+  description = "PostgreSQL service name"
+  type        = string
+  default     = "postgres"
 }
 variable "secret_name" {
-  type = string
-}
-variable "postgres_app_label" {
-  type = string
+  description = "Name of the Kubernetes secret"
+  type        = string
 }
 
-variable "replicas" {
-  type = number
+variable "app_label" {
+  description = "Application label used by PostgreSQL resources"
+  type        = string
+  default     = "postgres"
 }
+variable "replicas" {
+  description = "Number of PostgreSQL replicas"
+  type        = number
+  default     = 1
+}
+
 variable "storage_class_name" {
   description = "StorageClass name"
   type        = string
 }
+

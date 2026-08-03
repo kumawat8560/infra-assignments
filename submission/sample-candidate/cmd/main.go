@@ -24,7 +24,21 @@ func main() {
 		log.Fatal("APP_PORT must be an integer between 1 and 65535")
 	}
 
-	repo := repository.NewInMemory()
+	//repo := repository.NewInMemory()
+	databaseURL := os.Getenv("DATABASE_URL")
+	var repo repository.Repository
+	if databaseURL == "" {
+		log.Println("DATABASE_URL not configured. Using in-memory repository.")
+		repo = repository.NewInMemory()
+	} else {
+		postgresRepo, err := repository.NewPostgresRepository(databaseURL)
+		if err != nil {
+			log.Fatalf("failed to connect to PostgreSQL: %v", err)
+		}
+		defer postgresRepo.Close()
+		log.Println("Connected to PostgreSQL.")
+		repo = postgresRepo
+	}
 	svc := service.New(repo)
 	h := handler.New(svc)
 

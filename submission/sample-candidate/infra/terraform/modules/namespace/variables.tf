@@ -3,10 +3,3 @@ variable "namespace" {
   type        = string
   default     = "config-service"
 }
-
-
-variable "labels" {
-  description = "Labels to apply to the namespace"
-  type        = map(string)
-  default     = {}
-}
