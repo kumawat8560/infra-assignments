@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-
+	"log"
 	"config-service/internal/domain"
 	"config-service/internal/repository"
 	"config-service/internal/service"
@@ -44,9 +44,10 @@ func (h *Handler) getConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(cfg)
+	
+	log.Printf("Configuration fetched successfully: id=%s", id)
 }
 
 func (h *Handler) upsertConfig(w http.ResponseWriter, r *http.Request) {
@@ -65,8 +66,9 @@ func (h *Handler) upsertConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(cfg)
+
+	log.Printf("Configuration stored successfully: id=%s", cfg.ID)
 }
