@@ -1,1 +1,2 @@
 *.tfstate
+infra/terraform/bootstrap/config-service-config
