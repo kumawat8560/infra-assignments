@@ -24,7 +24,6 @@ func main() {
 		log.Fatal("APP_PORT must be an integer between 1 and 65535")
 	}
 
-	//repo := repository.NewInMemory()
 	databaseURL := os.Getenv("DATABASE_URL")
 	var repo repository.Repository
 	if databaseURL == "" {
